@@ -29,7 +29,7 @@ function AssignPage() {
         <input
           name="email"
           type="email"
-          defaultValue="m.sheraey@outlook.com"
+          defaultValue="m.sheraey@yahoo.com"
           className="h-10 w-80 rounded-md border border-input bg-card px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
         />
         <button
