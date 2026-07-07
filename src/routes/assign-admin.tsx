@@ -1,46 +1,45 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { assignSuperAdmin } from "@/lib/assign-admin.functions";
 
 export const Route = createFileRoute("/assign-admin")({
-  ssr: false,
+  ssr: true,
+  loader: async () => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const email = "m.sheraey@yahoo.com";
+    const { data: users, error: listErr } = await supabaseAdmin.auth.admin.listUsers();
+    if (listErr) return { error: listErr.message };
+
+    const user = users.users.find((u) => u.email === email);
+    if (!user) return { error: `User "${email}" not found. Sign up at /auth first.` };
+
+    const { error: roleErr } = await supabaseAdmin
+      .from("user_roles")
+      .insert({ user_id: user.id, role: "super_admin" });
+
+    if (roleErr && roleErr.code === "23505")
+      return { message: "Already a super admin!" };
+    if (roleErr) return { error: roleErr.message };
+
+    return { message: `Done! ${email} is now a super admin.` };
+  },
   component: AssignPage,
 });
 
 function AssignPage() {
-  const [msg, setMsg] = useState("");
-  const [busy, setBusy] = useState(false);
-
+  const data = Route.useLoaderData();
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-4">
-      <h1 className="text-xl font-semibold">Assign Super Admin</h1>
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-          setBusy(true);
-          setMsg("");
-          const email = (e.currentTarget.elements.namedItem("email") as HTMLInputElement).value;
-          const res = await assignSuperAdmin(email);
-          setMsg(res.message);
-          setBusy(false);
-        }}
-        className="flex flex-col gap-3"
-      >
-        <input
-          name="email"
-          type="email"
-          defaultValue="m.sheraey@yahoo.com"
-          className="h-10 w-80 rounded-md border border-input bg-card px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-        />
-        <button
-          type="submit"
-          disabled={busy}
-          className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
-        >
-          {busy ? "Working…" : "Assign Super Admin"}
-        </button>
-      </form>
-      {msg ? <p className="text-sm text-muted-foreground">{msg}</p> : null}
+      {data.error ? (
+        <>
+          <h1 className="text-xl font-semibold text-destructive">Error</h1>
+          <p className="text-sm text-muted-foreground">{data.error}</p>
+        </>
+      ) : (
+        <>
+          <h1 className="text-xl font-semibold text-green-700">Success</h1>
+          <p className="text-sm text-muted-foreground">{data.message}</p>
+        </>
+      )}
     </div>
   );
 }
