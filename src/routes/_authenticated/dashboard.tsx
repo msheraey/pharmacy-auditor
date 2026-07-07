@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession, useUserRoles, hasRole } from "@/lib/auth";
-import { AlertTriangle, CalendarClock, ClipboardCheck, Download, MapPin, TrendingUp } from "lucide-react";
+import { AlertTriangle, CalendarClock, ClipboardCheck, Download, MapPin, Plus, TrendingUp } from "lucide-react";
 import { bandLabel } from "@/lib/scoring";
 import type { RevisitBand } from "@/lib/types";
 
@@ -44,7 +44,7 @@ function Dashboard() {
     },
   });
 
-  const { data: branches } = useQuery({
+  const branches = useQuery({
     queryKey: ["dashboard-branches"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -85,7 +85,7 @@ function Dashboard() {
     URL.revokeObjectURL(url);
   };
 
-  const staleBranches = (branches ?? []).filter((b) => {
+  const staleBranches = (branches.data ?? []).filter((b) => {
     const last = lastVisitByBranch.get(b.name);
     if (!last) return true;
     const days = (Date.now() - new Date(last).getTime()) / 86400000;
@@ -93,10 +93,10 @@ function Dashboard() {
   });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Dashboard</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
           <p className="text-sm text-muted-foreground">
             {roles?.map((r) => r.role.replace("_", " ")).join(", ") || "no role"}
           </p>
@@ -104,40 +104,42 @@ function Dashboard() {
         {canWrite ? (
           <Link
             to="/visits/new"
-            className="inline-flex h-11 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90"
+            className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-xs transition-all hover:opacity-90 active:scale-[0.97]"
           >
-            Start visit
+            <Plus className="h-4 w-4" /> Start visit
           </Link>
         ) : null}
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat icon={<ClipboardCheck className="h-4 w-4" />} label="Recent visits" value={recentVisits?.length ?? 0} />
-        <Stat icon={<AlertTriangle className="h-4 w-4" />} label="Red-flagged" value={redFlagged.length} tone="destructive" />
+        <Stat icon={<AlertTriangle className="h-4 w-4" />} label="Red-flagged" value={redFlagged.length} tone="danger" />
         <Stat icon={<CalendarClock className="h-4 w-4" />} label="Revisits due" value={revisitDue.length} tone="warning" />
         <Stat icon={<TrendingUp className="h-4 w-4" />} label="Open actions" value={openActions ?? 0} />
       </div>
 
-      <button
-        onClick={exportDashboardCSV}
-        className="inline-flex h-9 items-center gap-1.5 rounded-md border border-input bg-background px-3 text-xs font-medium hover:bg-muted"
-      >
-        <Download className="h-3.5 w-3.5" /> Export CSV
-      </button>
+      <div className="flex items-center gap-3">
+        <button
+          onClick={exportDashboardCSV}
+          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-input bg-background px-3 text-xs font-medium transition-all hover:bg-muted hover:shadow-xs"
+        >
+          <Download className="h-3.5 w-3.5" /> Export CSV
+        </button>
+      </div>
 
       {redFlagged.length ? (
-        <Panel title="Red-flagged branches" tone="destructive">
+        <Panel title="Red-flagged branches" tone="danger">
           <ul className="divide-y">
             {redFlagged.map((v) => (
-              <li key={v.id} className="py-3">
-                <Link to="/visits/$visitId/report" params={{ visitId: v.id }} className="flex items-center justify-between gap-3">
+              <li key={v.id} className="table-row-hover first:-mt-0.5">
+                <Link to="/visits/$visitId/report" params={{ visitId: v.id }} className="flex items-center justify-between gap-3 px-1 py-3 no-underline">
                   <div>
                     <div className="font-medium">{(v as unknown as { branches: { name: string } }).branches?.name}</div>
                     <div className="text-xs text-muted-foreground">
                       {v.visit_date} · {v.weighted_score_pct?.toFixed(0) ?? "—"}% weighted
                     </div>
                   </div>
-                  <span className="rounded-md bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive">
+                  <span className="rounded-md bg-destructive/10 px-2.5 py-1 text-xs font-semibold text-destructive">
                     knockout
                   </span>
                 </Link>
@@ -151,8 +153,8 @@ function Dashboard() {
         <Panel title="Revisits due">
           <ul className="divide-y">
             {revisitDue.map((v) => (
-              <li key={v.id} className="py-3">
-                <Link to="/visits/$visitId/report" params={{ visitId: v.id }} className="flex items-center justify-between gap-3">
+              <li key={v.id} className="table-row-hover first:-mt-0.5">
+                <Link to="/visits/$visitId/report" params={{ visitId: v.id }} className="flex items-center justify-between gap-3 px-1 py-3 no-underline">
                   <div>
                     <div className="font-medium">{(v as unknown as { branches: { name: string } }).branches?.name}</div>
                     <div className="text-xs text-muted-foreground">{bandLabel[v.revisit_band as RevisitBand]}</div>
@@ -169,7 +171,7 @@ function Dashboard() {
         <Panel title={`Not visited in ${DAYS_SINCE_THRESHOLD}+ days`}>
           <ul className="divide-y">
             {staleBranches.slice(0, 10).map((b) => (
-              <li key={b.id} className="flex items-center justify-between py-3">
+              <li key={b.id} className="table-row-hover flex items-center justify-between px-1 py-3 first:-mt-0.5">
                 <div>
                   <div className="font-medium">{b.name}</div>
                   <div className="text-xs text-muted-foreground flex items-center gap-1">
@@ -180,7 +182,7 @@ function Dashboard() {
                   <Link
                     to="/visits/new"
                     search={{ branch: b.id }}
-                    className="text-xs font-medium text-primary hover:underline"
+                    className="text-xs font-medium text-primary transition-all hover:underline"
                   >
                     Start visit →
                   </Link>
@@ -195,11 +197,11 @@ function Dashboard() {
         {recentVisits && recentVisits.length ? (
           <ul className="divide-y">
             {recentVisits.slice(0, 10).map((v) => (
-              <li key={v.id} className="py-3">
+              <li key={v.id} className="table-row-hover first:-mt-0.5">
                 <Link
                   to={v.status === "completed" ? "/visits/$visitId/report" : "/visits/$visitId"}
                   params={{ visitId: v.id }}
-                  className="flex items-center justify-between gap-3"
+                  className="flex items-center justify-between gap-3 px-1 py-3 no-underline"
                 >
                   <div>
                     <div className="font-medium">{(v as unknown as { branches: { name: string } }).branches?.name}</div>
@@ -208,9 +210,9 @@ function Dashboard() {
                     </div>
                   </div>
                   {v.red_flagged ? (
-                    <span className="rounded-md bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive">knockout</span>
+                    <span className="rounded-md bg-destructive/10 px-2.5 py-1 text-xs font-semibold text-destructive">knockout</span>
                   ) : v.status === "in_progress" ? (
-                    <span className="rounded-md bg-accent px-2 py-1 text-xs font-medium text-accent-foreground">draft</span>
+                    <span className="rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground">draft</span>
                   ) : null}
                 </Link>
               </li>
@@ -228,25 +230,36 @@ function Dashboard() {
   );
 }
 
-function Stat({ icon, label, value, tone }: { icon: React.ReactNode; label: string; value: number; tone?: "destructive" | "warning" }) {
-  const toneClass = tone === "destructive" ? "text-destructive" : tone === "warning" ? "text-warning-foreground" : "text-foreground";
+function Stat({ icon, label, value, tone }: { icon: React.ReactNode; label: string; value: number; tone?: "danger" | "warning" }) {
+  const [toneBg, toneIcon, toneText] = tone === "danger"
+    ? ["bg-destructive/10", "text-destructive", "text-destructive"]
+    : tone === "warning"
+    ? ["bg-warning/10", "text-warning-foreground", "text-warning-foreground"]
+    : ["bg-primary/10", "text-primary", "text-foreground"];
   return (
-    <div className="rounded-xl border bg-card p-4">
+    <div className="card-elevated rounded-xl border bg-card p-4">
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        {icon}
+        <span className={`inline-flex h-6 w-6 items-center justify-center rounded-md ${toneBg} ${toneIcon}`}>
+          {icon}
+        </span>
         {label}
       </div>
-      <div className={`mt-2 text-2xl font-semibold ${toneClass}`}>{value}</div>
+      <div className={`mt-2 text-2xl font-bold ${toneText}`}>{value}</div>
     </div>
   );
 }
 
-function Panel({ title, tone, children }: { title: string; tone?: "destructive"; children: React.ReactNode }) {
+function Panel({ title, tone, children }: { title: string; tone?: "danger"; children: React.ReactNode }) {
   return (
-    <section className={`rounded-xl border bg-card p-5 ${tone === "destructive" ? "border-destructive/40" : ""}`}>
-      <h2 className={`mb-1 text-sm font-semibold uppercase tracking-wide ${tone === "destructive" ? "text-destructive" : "text-muted-foreground"}`}>
-        {title}
-      </h2>
+    <section className={`rounded-xl border bg-card p-5 shadow-xs ${tone === "danger" ? "border-destructive/30" : ""}`}>
+      <div className={`mb-3 flex items-center gap-2 ${tone === "danger" ? "text-destructive" : "text-muted-foreground"}`}>
+        {tone === "danger" ? (
+          <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
+        ) : (
+          <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40" />
+        )}
+        <h2 className="text-xs font-semibold uppercase tracking-widest">{title}</h2>
+      </div>
       <div>{children}</div>
     </section>
   );

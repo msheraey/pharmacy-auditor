@@ -1,12 +1,12 @@
 import { createFileRoute, Outlet, Link } from "@tanstack/react-router";
 import { useSession, useUserRoles, hasRole } from "@/lib/auth";
-import { ClipboardCheck, Settings, ShieldAlert } from "lucide-react";
+import { ClipboardCheck, ShieldAlert, Users, Building2, UserCheck } from "lucide-react";
 
 const tabs = [
-  { to: "/admin/checklist", label: "Checklist" },
-  { to: "/admin/users", label: "Users" },
-  { to: "/admin/branches", label: "Branches" },
-  { to: "/admin/staff", label: "Staff" },
+  { to: "/admin/checklist", label: "Checklist", icon: ClipboardCheck },
+  { to: "/admin/users", label: "Users", icon: Users },
+  { to: "/admin/branches", label: "Branches", icon: Building2 },
+  { to: "/admin/staff", label: "Staff", icon: UserCheck },
 ] as const;
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -36,20 +36,24 @@ function AdminLayout() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <Settings className="h-5 w-5 text-muted-foreground" />
-        <h1 className="text-xl font-semibold">Admin</h1>
+      <div>
+        <h1 className="text-xl font-semibold tracking-tight">Admin</h1>
+        <p className="text-sm text-muted-foreground">Manage checklist, users, branches, and staff</p>
       </div>
-      <nav className="flex gap-1 rounded-lg border bg-card p-1 text-sm">
-        {tabs.map((tab) => (
-          <Link
-            key={tab.to}
-            to={tab.to}
-            className="flex-1 rounded-md px-3 py-2 text-center font-medium transition [&.active]:bg-primary [&.active]:text-primary-foreground text-muted-foreground hover:bg-muted"
-          >
-            {tab.label}
-          </Link>
-        ))}
+      <nav className="flex gap-1 rounded-lg border bg-card p-1 shadow-xs">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <Link
+              key={tab.to}
+              to={tab.to}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-all [&.active]:bg-primary [&.active]:text-primary-foreground [&.active]:shadow-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <Icon className="h-4 w-4" />
+              {tab.label}
+            </Link>
+          );
+        })}
       </nav>
       <Outlet />
     </div>

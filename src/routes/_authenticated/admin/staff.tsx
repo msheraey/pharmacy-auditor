@@ -74,7 +74,7 @@ function StaffAdmin() {
   }
 
   function SortIcon({ col }: { col: SortCol }) {
-    if (sortCol !== col) return <ArrowUpDown className="h-3 w-3" />;
+    if (sortCol !== col) return <ArrowUpDown className="h-3 w-3 text-muted-foreground/50" />;
     return sortDir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
   }
 
@@ -84,7 +84,7 @@ function StaffAdmin() {
         <p className="text-sm text-muted-foreground">{filtered.length} / {staff?.length ?? 0} staff</p>
         <button
           onClick={() => setShowAdd(true)}
-          className="inline-flex h-9 items-center gap-1 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:opacity-90"
+          className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground shadow-xs transition-all hover:opacity-90 active:scale-[0.97]"
         >
           <Plus className="h-3.5 w-3.5" /> Add staff
         </button>
@@ -95,50 +95,50 @@ function StaffAdmin() {
       ) : null}
 
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/60" />
         <input
           placeholder="Search staff…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="h-10 w-full rounded-lg border border-input bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+          className="h-10 w-full rounded-lg border border-input bg-background pl-9 pr-3 text-sm outline-none transition-shadow focus:shadow-xs focus:ring-2 focus:ring-ring"
         />
       </div>
 
-      <div className="overflow-x-auto rounded-lg border">
+      <div className="overflow-x-auto rounded-xl border shadow-xs">
         <table className="w-full text-sm">
-          <thead className="bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
-            <tr>
-              <th className="px-4 py-3 text-left">
-                <button onClick={() => toggleSort("code")} className="inline-flex items-center gap-1 hover:text-foreground">
+          <thead>
+            <tr className="bg-muted/60">
+              <th className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <button onClick={() => toggleSort("code")} className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors">
                   Code <SortIcon col="code" />
                 </button>
               </th>
-              <th className="px-4 py-3 text-left">
-                <button onClick={() => toggleSort("name")} className="inline-flex items-center gap-1 hover:text-foreground">
+              <th className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <button onClick={() => toggleSort("name")} className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors">
                   Name <SortIcon col="name" />
                 </button>
               </th>
-              <th className="px-4 py-3 text-left">
-                <button onClick={() => toggleSort("role")} className="inline-flex items-center gap-1 hover:text-foreground">
+              <th className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <button onClick={() => toggleSort("role")} className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors">
                   Role <SortIcon col="role" />
                 </button>
               </th>
-              <th className="px-4 py-3 text-left">
-                <button onClick={() => toggleSort("branch")} className="inline-flex items-center gap-1 hover:text-foreground">
+              <th className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <button onClick={() => toggleSort("branch")} className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors">
                   Branch <SortIcon col="branch" />
                 </button>
               </th>
-              <th className="px-4 py-3 text-left">
-                <button onClick={() => toggleSort("active")} className="inline-flex items-center gap-1 hover:text-foreground">
+              <th className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <button onClick={() => toggleSort("active")} className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors">
                   Active <SortIcon col="active" />
                 </button>
               </th>
-              <th className="px-4 py-3 text-right">Actions</th>
+              <th className="px-4 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y">
-            {filtered.map((s) => (
-              <tr key={s.id}>
+            {filtered.map((s, i) => (
+              <tr key={s.id} className={`table-row-hover ${i % 2 === 1 ? "bg-muted/20" : ""}`}>
                 <td className="px-4 py-3 text-xs text-muted-foreground">
                   <InlineInput
                     value={s.staff_code}
@@ -203,7 +203,8 @@ function ToggleActive({ id, active, onDone }: { id: string; active: boolean; onD
     onSuccess: onDone,
   });
   return (
-    <button onClick={() => mut.mutate()} className={`text-xs font-medium ${active ? "text-success" : "text-muted-foreground"}`}>
+    <button onClick={() => mut.mutate()} className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all ${active ? "bg-success/10 text-success hover:bg-success/20" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${active ? "bg-success" : "bg-muted-foreground/50"}`} />
       {active ? "Active" : "Inactive"}
     </button>
   );
@@ -237,28 +238,28 @@ function StaffForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => v
   });
 
   return (
-    <div className="rounded-lg border bg-card p-4 space-y-3">
+    <div className="rounded-xl border bg-card p-5 shadow-xs space-y-3">
       <h3 className="text-sm font-semibold">New staff</h3>
       <div className="grid gap-3 sm:grid-cols-2">
-        <input placeholder="Code (digits only, e.g. 0021)" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} className="h-9 rounded-md border border-input bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-ring" />
-        <input placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} className="h-9 rounded-md border border-input bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-ring" />
-        <select value={role} onChange={(e) => setRole(e.target.value as StaffRole)} className="h-9 rounded-md border border-input bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-ring">
+        <input placeholder="Code (digits only, e.g. 0021)" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} className="h-9 rounded-lg border border-input bg-background px-3 text-xs outline-none transition-shadow focus:shadow-xs focus:ring-2 focus:ring-ring" />
+        <input placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} className="h-9 rounded-lg border border-input bg-background px-3 text-xs outline-none transition-shadow focus:shadow-xs focus:ring-2 focus:ring-ring" />
+        <select value={role} onChange={(e) => setRole(e.target.value as StaffRole)} className="h-9 rounded-lg border border-input bg-background px-3 text-xs outline-none transition-shadow focus:shadow-xs focus:ring-2 focus:ring-ring">
           <option value="Pharmacist">Pharmacist</option>
           <option value="Salesperson">Salesperson</option>
           <option value="Branch Manager">Branch Manager</option>
           <option value="Preparation">Preparation</option>
         </select>
-        <select value={branchId} onChange={(e) => setBranchId(e.target.value)} className="h-9 rounded-md border border-input bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-ring">
+        <select value={branchId} onChange={(e) => setBranchId(e.target.value)} className="h-9 rounded-lg border border-input bg-background px-3 text-xs outline-none transition-shadow focus:shadow-xs focus:ring-2 focus:ring-ring">
           <option value="">No branch</option>
           {(branches ?? []).map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
         </select>
       </div>
       {err ? <p className="text-xs text-destructive">{err}</p> : null}
       <div className="flex items-center gap-2">
-        <button onClick={() => mut.mutate()} disabled={mut.isPending || !code || !name} className="h-9 rounded-md bg-primary px-4 text-xs font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50">
+        <button onClick={() => mut.mutate()} disabled={mut.isPending || !code || !name} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-xs font-medium text-primary-foreground shadow-xs transition-all hover:opacity-90 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100">
           {mut.isPending ? "Adding…" : "Add staff"}
         </button>
-        <button onClick={onCancel} className="h-9 rounded-md border border-input bg-background px-4 text-xs font-medium hover:bg-muted">Cancel</button>
+        <button onClick={onCancel} className="inline-flex h-9 items-center rounded-lg border border-input bg-background px-4 text-xs font-medium transition-all hover:bg-muted">Cancel</button>
       </div>
     </div>
   );
@@ -275,15 +276,15 @@ function DeleteStaff({ id, name, onDone }: { id: string; name: string; onDone: (
   });
   if (confirming) {
     return (
-      <div className="flex items-center justify-end gap-1 text-xs">
+      <div className="flex items-center justify-end gap-1.5 text-xs">
         <span className="text-muted-foreground">Delete {name}?</span>
-        <button onClick={() => mut.mutate()} className="text-destructive hover:underline">Yes</button>
-        <button onClick={() => setConfirming(false)} className="text-muted-foreground hover:underline">No</button>
+        <button onClick={() => mut.mutate()} className="font-medium text-destructive hover:underline">Yes</button>
+        <button onClick={() => setConfirming(false)} className="font-medium text-muted-foreground hover:underline">No</button>
       </div>
     );
   }
   return (
-    <button onClick={() => setConfirming(true)} className="text-muted-foreground hover:text-destructive">
+    <button onClick={() => setConfirming(true)} className="rounded-md p-1.5 text-muted-foreground/60 transition-all hover:bg-destructive/10 hover:text-destructive">
       <Trash2 className="h-3.5 w-3.5" />
     </button>
   );

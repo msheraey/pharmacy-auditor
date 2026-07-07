@@ -56,7 +56,7 @@ function BranchesAdmin() {
   }
 
   function SortIcon({ col }: { col: SortCol }) {
-    if (sortCol !== col) return <ArrowUpDown className="h-3 w-3" />;
+    if (sortCol !== col) return <ArrowUpDown className="h-3 w-3 text-muted-foreground/50" />;
     return sortDir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
   }
 
@@ -66,7 +66,7 @@ function BranchesAdmin() {
         <p className="text-sm text-muted-foreground">{filtered.length} / {branches?.length ?? 0} branches</p>
         <button
           onClick={() => setShowAdd(true)}
-          className="inline-flex h-9 items-center gap-1 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:opacity-90"
+          className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground shadow-xs transition-all hover:opacity-90 active:scale-[0.97]"
         >
           <Plus className="h-3.5 w-3.5" /> Add branch
         </button>
@@ -77,45 +77,45 @@ function BranchesAdmin() {
       ) : null}
 
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/60" />
         <input
           placeholder="Search branches…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="h-10 w-full rounded-lg border border-input bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+          className="h-10 w-full rounded-lg border border-input bg-background pl-9 pr-3 text-sm outline-none transition-shadow focus:shadow-xs focus:ring-2 focus:ring-ring"
         />
       </div>
 
-      <div className="overflow-x-auto rounded-lg border">
+      <div className="overflow-x-auto rounded-xl border shadow-xs">
         <table className="w-full text-sm">
-          <thead className="bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
-            <tr>
-              <th className="px-4 py-3 text-left">
-                <button onClick={() => toggleSort("name")} className="inline-flex items-center gap-1 hover:text-foreground">
+          <thead>
+            <tr className="bg-muted/60">
+              <th className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <button onClick={() => toggleSort("name")} className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors">
                   Name <SortIcon col="name" />
                 </button>
               </th>
-              <th className="px-4 py-3 text-left">
-                <button onClick={() => toggleSort("emirate")} className="inline-flex items-center gap-1 hover:text-foreground">
+              <th className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <button onClick={() => toggleSort("emirate")} className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors">
                   Emirate <SortIcon col="emirate" />
                 </button>
               </th>
-              <th className="px-4 py-3 text-left">
-                <button onClick={() => toggleSort("profile")} className="inline-flex items-center gap-1 hover:text-foreground">
+              <th className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <button onClick={() => toggleSort("profile")} className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors">
                   Profile <SortIcon col="profile" />
                 </button>
               </th>
-              <th className="px-4 py-3 text-left">
-                <button onClick={() => toggleSort("active")} className="inline-flex items-center gap-1 hover:text-foreground">
+              <th className="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <button onClick={() => toggleSort("active")} className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors">
                   Active <SortIcon col="active" />
                 </button>
               </th>
-              <th className="px-4 py-3 text-right">Actions</th>
+              <th className="px-4 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y">
-            {filtered.map((b) => (
-              <tr key={b.id}>
+            {filtered.map((b, i) => (
+              <tr key={b.id} className={`table-row-hover ${i % 2 === 1 ? "bg-muted/20" : ""}`}>
                 <td className="px-4 py-3 font-medium">
                   <InlineInput
                     value={b.name}
@@ -177,18 +177,18 @@ function BranchForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => 
   });
 
   return (
-    <div className="rounded-lg border bg-card p-4 space-y-3">
+    <div className="rounded-xl border bg-card p-5 shadow-xs space-y-3">
       <h3 className="text-sm font-semibold">New branch</h3>
       <div className="grid gap-3 sm:grid-cols-3">
-        <input placeholder="Branch name" value={name} onChange={(e) => setName(e.target.value)} className="h-9 rounded-md border border-input bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-ring" />
-        <select value={emirate} onChange={(e) => setEmirate(e.target.value)} className="h-9 rounded-md border border-input bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-ring">
+        <input placeholder="Branch name" value={name} onChange={(e) => setName(e.target.value)} className="h-9 rounded-lg border border-input bg-background px-3 text-xs outline-none transition-shadow focus:shadow-xs focus:ring-2 focus:ring-ring" />
+        <select value={emirate} onChange={(e) => setEmirate(e.target.value)} className="h-9 rounded-lg border border-input bg-background px-3 text-xs outline-none transition-shadow focus:shadow-xs focus:ring-2 focus:ring-ring">
           <option value="">Select emirate</option>
           <option value="Dubai">Dubai</option>
           <option value="Abu Dhabi">Abu Dhabi</option>
           <option value="Sharjah">Sharjah</option>
           <option value="Ras Al Khaimah">Ras Al Khaimah</option>
         </select>
-        <select value={profile} onChange={(e) => setProfile(e.target.value as BranchProfile)} className="h-9 rounded-md border border-input bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-ring">
+        <select value={profile} onChange={(e) => setProfile(e.target.value as BranchProfile)} className="h-9 rounded-lg border border-input bg-background px-3 text-xs outline-none transition-shadow focus:shadow-xs focus:ring-2 focus:ring-ring">
           <option value="Retail">Retail</option>
           <option value="Delivery">Delivery</option>
           <option value="Mixed">Mixed</option>
@@ -197,10 +197,10 @@ function BranchForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => 
       </div>
       {err ? <p className="text-xs text-destructive">{err}</p> : null}
       <div className="flex items-center gap-2">
-        <button onClick={() => mut.mutate()} disabled={mut.isPending || !name || !emirate} className="h-9 rounded-md bg-primary px-4 text-xs font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50">
+        <button onClick={() => mut.mutate()} disabled={mut.isPending || !name || !emirate} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-xs font-medium text-primary-foreground shadow-xs transition-all hover:opacity-90 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100">
           {mut.isPending ? "Adding…" : "Add branch"}
         </button>
-        <button onClick={onCancel} className="h-9 rounded-md border border-input bg-background px-4 text-xs font-medium hover:bg-muted">Cancel</button>
+        <button onClick={onCancel} className="inline-flex h-9 items-center rounded-lg border border-input bg-background px-4 text-xs font-medium transition-all hover:bg-muted">Cancel</button>
       </div>
     </div>
   );
@@ -215,7 +215,8 @@ function ToggleActive({ id, active, onDone }: { id: string; active: boolean; onD
     onSuccess: onDone,
   });
   return (
-    <button onClick={() => mut.mutate()} className={`text-xs font-medium ${active ? "text-success" : "text-muted-foreground"}`}>
+    <button onClick={() => mut.mutate()} className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all ${active ? "bg-success/10 text-success hover:bg-success/20" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${active ? "bg-success" : "bg-muted-foreground/50"}`} />
       {active ? "Active" : "Inactive"}
     </button>
   );
@@ -232,15 +233,15 @@ function DeleteBranch({ id, name, onDone }: { id: string; name: string; onDone: 
   });
   if (confirming) {
     return (
-      <div className="flex items-center justify-end gap-1 text-xs">
+      <div className="flex items-center justify-end gap-1.5 text-xs">
         <span className="text-muted-foreground">Delete {name}?</span>
-        <button onClick={() => mut.mutate()} className="text-destructive hover:underline">Yes</button>
-        <button onClick={() => setConfirming(false)} className="text-muted-foreground hover:underline">No</button>
+        <button onClick={() => mut.mutate()} className="font-medium text-destructive hover:underline">Yes</button>
+        <button onClick={() => setConfirming(false)} className="font-medium text-muted-foreground hover:underline">No</button>
       </div>
     );
   }
   return (
-    <button onClick={() => setConfirming(true)} className="text-muted-foreground hover:text-destructive">
+    <button onClick={() => setConfirming(true)} className="rounded-md p-1.5 text-muted-foreground/60 transition-all hover:bg-destructive/10 hover:text-destructive">
       <Trash2 className="h-3.5 w-3.5" />
     </button>
   );

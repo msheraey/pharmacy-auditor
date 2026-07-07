@@ -39,20 +39,19 @@
 
 :root {
   --radius: 0.75rem;
-  /* Clinical, calm palette: warm off-white bg, deep teal primary, warm accent */
   --background: oklch(0.985 0.006 95);
   --foreground: oklch(0.20 0.02 200);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.20 0.02 200);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.20 0.02 200);
-  --primary: oklch(0.48 0.09 195);           /* deep teal */
+  --primary: oklch(0.48 0.09 195);
   --primary-foreground: oklch(0.985 0.006 95);
   --secondary: oklch(0.95 0.02 190);
   --secondary-foreground: oklch(0.30 0.05 195);
   --muted: oklch(0.955 0.008 90);
   --muted-foreground: oklch(0.48 0.02 200);
-  --accent: oklch(0.90 0.06 75);              /* warm sand accent */
+  --accent: oklch(0.90 0.06 75);
   --accent-foreground: oklch(0.30 0.05 60);
   --destructive: oklch(0.55 0.20 25);
   --destructive-foreground: oklch(0.99 0 0);
@@ -97,15 +96,43 @@
 
 @layer base {
   * { border-color: var(--color-border); }
+  *:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  ::selection { background: oklch(0.48 0.09 195 / 0.2); }
   body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+    background-color: var(--background);
+    color: var(--foreground);
     -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   html { -webkit-text-size-adjust: 100%; }
 }
 
-/* Score pill utility — large tap targets for mobile audit flow */
+@layer utilities {
+  /* Subtle dot-grid background pattern */
+  .bg-dot-grid {
+    background-image: radial-gradient(circle, var(--border) 0.5px, transparent 0.5px);
+    background-size: 20px 20px;
+  }
+
+  /* Card with hover elevation */
+  .card-elevated {
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .card-elevated:hover {
+    box-shadow: 0 4px 20px oklch(0 0 0 / 0.06);
+    transform: translateY(-1px);
+  }
+
+  /* Table row hover */
+  .table-row-hover {
+    transition: background-color 0.12s;
+  }
+  .table-row-hover:hover {
+    background-color: var(--muted);
+  }
+}
+
 @utility score-pill {
   display: inline-flex;
   align-items: center;
@@ -129,3 +156,11 @@
 @utility score-pill-selected-2 { background: color-mix(in oklab, var(--color-warning) 40%, var(--color-destructive)); color: var(--color-destructive-foreground); border-color: transparent; }
 @utility score-pill-selected-1 { background: var(--color-destructive); color: var(--color-destructive-foreground); border-color: var(--color-destructive); }
 @utility score-pill-selected-na { background: var(--color-muted); color: var(--color-muted-foreground); border-color: var(--color-border); }
+
+/* Scrollbar */
+@media (pointer: fine) {
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-muted-foreground); }
+}

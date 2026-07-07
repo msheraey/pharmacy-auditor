@@ -57,32 +57,32 @@ function AuthenticatedLayout() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-30 border-b bg-card/95 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
-          <Link to="/dashboard" className="flex items-center gap-2 font-semibold">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
+      <header className="sticky top-0 z-30 border-b bg-card/80 shadow-xs backdrop-blur-lg">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-2.5">
+          <Link to="/dashboard" className="flex items-center gap-2.5 font-semibold no-underline">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-xs">
               <ClipboardCheck className="h-4 w-4" />
             </span>
-            <span className="hidden sm:inline">Branch Auditor</span>
+            <span className="hidden sm:inline text-sm tracking-tight">Branch Auditor</span>
           </Link>
-          <nav className="flex items-center gap-1">
+          <nav className="flex items-center gap-0.5">
             <Link
               to="/dashboard"
-              className="inline-flex h-10 items-center gap-1.5 rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground [&.active]:bg-secondary [&.active]:text-secondary-foreground"
+              className="relative inline-flex h-9 items-center gap-1.5 rounded-md px-3 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground [&.active]:bg-primary/10 [&.active]:text-primary"
               activeOptions={{ exact: true }}
             >
               <LayoutDashboard className="h-4 w-4" /> <span className="hidden sm:inline">Dashboard</span>
             </Link>
             <Link
               to="/visits/new"
-              className="inline-flex h-10 items-center gap-1.5 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:opacity-90"
+              className="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground shadow-xs transition-all hover:opacity-90 active:scale-[0.97]"
             >
               <Plus className="h-4 w-4" /> <span className="hidden sm:inline">New visit</span>
             </Link>
             {hasRole(roles, "super_admin") ? (
               <Link
                 to="/admin/checklist"
-                className="inline-flex h-10 items-center gap-1.5 rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground [&.active]:bg-secondary [&.active]:text-secondary-foreground"
+                className="relative inline-flex h-9 items-center gap-1.5 rounded-md px-3 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground [&.active]:bg-primary/10 [&.active]:text-primary"
               >
                 <Settings className="h-4 w-4" /> <span className="hidden sm:inline">Admin</span>
               </Link>
@@ -90,7 +90,7 @@ function AuthenticatedLayout() {
             <button
               onClick={handleSignOut}
               title="Sign out"
-              className="ml-1 inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+              className="ml-0.5 inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
             >
               <LogOut className="h-4 w-4" />
             </button>
