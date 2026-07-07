@@ -5,6 +5,7 @@ import { useState } from "react";
 import { ChevronDown, ChevronRight, Plus, Pencil, Trash2, GripVertical, X, Check, AlertTriangle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/checklist")({
+  ssr: false,
   component: ChecklistAdmin,
 });
 

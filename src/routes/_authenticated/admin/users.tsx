@@ -6,6 +6,7 @@ import { Plus, Trash2, ShieldAlert, Shield, Eye } from "lucide-react";
 import type { AppRole } from "@/lib/auth";
 
 export const Route = createFileRoute("/_authenticated/admin/users")({
+  ssr: false,
   component: UsersAdmin,
 });
 

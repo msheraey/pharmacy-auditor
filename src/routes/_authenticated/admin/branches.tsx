@@ -6,6 +6,7 @@ import { Plus, Trash2, MapPin } from "lucide-react";
 import type { BranchProfile } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/admin/branches")({
+  ssr: false,
   component: BranchesAdmin,
 });
 

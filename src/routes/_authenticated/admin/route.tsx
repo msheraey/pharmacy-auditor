@@ -10,6 +10,7 @@ const tabs = [
 ] as const;
 
 export const Route = createFileRoute("/_authenticated/admin")({
+  ssr: false,
   head: () => ({ meta: [{ title: "Admin — Branch Auditor" }] }),
   component: AdminLayout,
 });

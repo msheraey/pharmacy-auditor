@@ -6,6 +6,7 @@ import { Plus, Trash2, User } from "lucide-react";
 import type { StaffRole } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/admin/staff")({
+  ssr: false,
   component: StaffAdmin,
 });
 
