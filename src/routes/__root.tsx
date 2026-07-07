@@ -107,6 +107,7 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        <style>{`#lovable-badge,.lovable-badge,[class*="lovable"],[id*="lovable"]{display:none!important}`}</style>
       </head>
       <body>
         {children}
