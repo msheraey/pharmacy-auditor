@@ -2,8 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
-import { Plus, Trash2, User } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import type { StaffRole } from "@/lib/types";
+import { InlineInput, InlineSelect } from "@/components/inline-edit";
 
 export const Route = createFileRoute("/_authenticated/admin/staff")({
   ssr: false,
@@ -23,6 +24,15 @@ function StaffAdmin() {
         .order("full_name");
       if (error) throw error;
       return data as unknown as (typeof data) & { branches: { name: string } | null }[];
+    },
+  });
+
+  const { data: branches } = useQuery({
+    queryKey: ["branches-for-staff"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("branches").select("id, name").order("name");
+      if (error) throw error;
+      return data;
     },
   });
 
@@ -58,25 +68,62 @@ function StaffAdmin() {
           <tbody className="divide-y">
             {staff?.map((s) => (
               <tr key={s.id}>
-                <td className="px-4 py-3 text-xs text-muted-foreground">{s.staff_code}</td>
-                <td className="px-4 py-3 font-medium">{s.full_name}</td>
-                <td className="px-4 py-3">{s.role}</td>
-                <td className="px-4 py-3 text-muted-foreground">{s.branches?.name ?? "—"}</td>
-                <td className="px-4 py-3 text-xs">
-                  {s.dha_license_status ? (
-                    <span className="rounded-md bg-success/10 px-2 py-0.5 text-xs text-success">{s.dha_license_status}</span>
-                  ) : "—"}
-                </td>
-                <td className="px-4 py-3">
-                  <button
-                    onClick={async () => {
-                      await supabase.from("staff").update({ active: !s.active }).eq("id", s.id);
+                <td className="px-4 py-3 text-xs text-muted-foreground">
+                  <InlineInput
+                    value={s.staff_code}
+                    onSave={async (v) => {
+                      await supabase.from("staff").update({ staff_code: v }).eq("id", s.id);
                       qc.invalidateQueries();
                     }}
-                    className={`text-xs font-medium ${s.active ? "text-success" : "text-muted-foreground"}`}
-                  >
-                    {s.active ? "Active" : "Inactive"}
-                  </button>
+                  />
+                </td>
+                <td className="px-4 py-3 font-medium">
+                  <InlineInput
+                    value={s.full_name}
+                    onSave={async (v) => { await supabase.from("staff").update({ full_name: v }).eq("id", s.id); qc.invalidateQueries(); }}
+                  />
+                </td>
+                <td className="px-4 py-3">
+                  <InlineSelect
+                    value={s.role}
+                    onSave={async (v) => { await supabase.from("staff").update({ role: v as StaffRole }).eq("id", s.id); qc.invalidateQueries(); }}
+                    options={[
+                      { value: "Pharmacist", label: "Pharmacist" },
+                      { value: "Salesperson", label: "Salesperson" },
+                      { value: "Branch Manager", label: "Branch Manager" },
+                      { value: "Preparation", label: "Preparation" },
+                    ]}
+                  />
+                </td>
+                <td className="px-4 py-3 text-muted-foreground">
+                  <InlineSelect
+                    value={s.branch_id ?? ""}
+                    onSave={async (v) => {
+                      await supabase.from("staff").update({ branch_id: v || null }).eq("id", s.id);
+                      qc.invalidateQueries();
+                    }}
+                    options={[
+                      { value: "", label: "—" },
+                      ...(branches ?? []).map((b) => ({ value: b.id, label: b.name })),
+                    ]}
+                  />
+                </td>
+                <td className="px-4 py-3 text-xs">
+                  {s.dha_license_status ? (
+                    <InlineInput
+                      value={s.dha_license_status}
+                      onSave={async (v) => { await supabase.from("staff").update({ dha_license_status: v || null }).eq("id", s.id); qc.invalidateQueries(); }}
+                    />
+                  ) : (
+                    <InlineInput
+                      value=""
+                      placeholder="Add DHA"
+                      onSave={async (v) => { await supabase.from("staff").update({ dha_license_status: v || null }).eq("id", s.id); qc.invalidateQueries(); }}
+                    />
+                  )}
+                </td>
+                <td className="px-4 py-3">
+                  <ToggleActive id={s.id} active={s.active} onDone={() => qc.invalidateQueries()} />
                 </td>
                 <td className="px-4 py-3 text-right">
                   <DeleteStaff id={s.id} name={s.full_name} onDone={() => qc.invalidateQueries()} />
@@ -87,6 +134,21 @@ function StaffAdmin() {
         </table>
       </div>
     </div>
+  );
+}
+
+function ToggleActive({ id, active, onDone }: { id: string; active: boolean; onDone: () => void }) {
+  const mut = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("staff").update({ active: !active }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: onDone,
+  });
+  return (
+    <button onClick={() => mut.mutate()} className={`text-xs font-medium ${active ? "text-success" : "text-muted-foreground"}`}>
+      {active ? "Active" : "Inactive"}
+    </button>
   );
 }
 
@@ -123,7 +185,7 @@ function StaffForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => v
     <div className="rounded-lg border bg-card p-4 space-y-3">
       <h3 className="text-sm font-semibold">New staff</h3>
       <div className="grid gap-3 sm:grid-cols-2">
-        <input placeholder="Staff code (e.g. PH001)" value={code} onChange={(e) => setCode(e.target.value)} className="h-9 rounded-md border border-input bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-ring" />
+        <input placeholder="Code (digits only, e.g. 0021)" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} className="h-9 rounded-md border border-input bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-ring" />
         <input placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} className="h-9 rounded-md border border-input bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-ring" />
         <select value={role} onChange={(e) => setRole(e.target.value as StaffRole)} className="h-9 rounded-md border border-input bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-ring">
           <option value="Pharmacist">Pharmacist</option>
@@ -135,7 +197,7 @@ function StaffForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => v
           <option value="">No branch</option>
           {(branches ?? []).map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
         </select>
-        <input placeholder="DHA license status (optional)" value={dha} onChange={(e) => setDha(e.target.value)} className="h-9 rounded-md border border-input bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-ring" />
+        <input placeholder="DHA license (optional)" value={dha} onChange={(e) => setDha(e.target.value)} className="h-9 rounded-md border border-input bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-ring" />
       </div>
       {err ? <p className="text-xs text-destructive">{err}</p> : null}
       <div className="flex items-center gap-2">

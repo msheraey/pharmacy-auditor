@@ -2,8 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
-import { Plus, Trash2, MapPin } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import type { BranchProfile } from "@/lib/types";
+import { InlineInput, InlineSelect } from "@/components/inline-edit";
 
 export const Route = createFileRoute("/_authenticated/admin/branches")({
   ssr: false,
@@ -23,6 +24,15 @@ function BranchesAdmin() {
         .order("name");
       if (error) throw error;
       return data as unknown as (typeof data) & { clusters: { name: string } | null }[];
+    },
+  });
+
+  const { data: clusters } = useQuery({
+    queryKey: ["clusters"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("clusters").select("id, name").order("name");
+      if (error) throw error;
+      return data;
     },
   });
 
@@ -57,10 +67,50 @@ function BranchesAdmin() {
           <tbody className="divide-y">
             {branches?.map((b) => (
               <tr key={b.id}>
-                <td className="px-4 py-3 font-medium">{b.name}</td>
-                <td className="px-4 py-3 text-muted-foreground">{b.emirate}</td>
-                <td className="px-4 py-3 text-muted-foreground">{b.clusters?.name ?? "—"}</td>
-                <td className="px-4 py-3">{b.branch_profile}</td>
+                <td className="px-4 py-3 font-medium">
+                  <InlineInput
+                    value={b.name}
+                    onSave={async (v) => { await supabase.from("branches").update({ name: v }).eq("id", b.id); qc.invalidateQueries(); }}
+                  />
+                </td>
+                <td className="px-4 py-3">
+                  <InlineSelect
+                    value={b.emirate}
+                    onSave={async (v) => { await supabase.from("branches").update({ emirate: v }).eq("id", b.id); qc.invalidateQueries(); }}
+                    options={[
+                      { value: "Dubai", label: "Dubai" },
+                      { value: "Abu Dhabi", label: "Abu Dhabi" },
+                      { value: "Sharjah", label: "Sharjah" },
+                      { value: "Ras Al Khaimah", label: "Ras Al Khaimah" },
+                    ]}
+                  />
+                </td>
+                <td className="px-4 py-3">
+                  <InlineSelect
+                    value={b.clusters?.name ?? ""}
+                    onSave={async (v) => {
+                      if (!v) { await supabase.from("branches").update({ cluster_id: null }).eq("id", b.id); }
+                      else { await supabase.from("branches").update({ cluster_id: v }).eq("id", b.id); }
+                      qc.invalidateQueries();
+                    }}
+                    options={[
+                      { value: "", label: "None" },
+                      ...(clusters ?? []).map((c) => ({ value: c.id, label: c.name })),
+                    ]}
+                  />
+                </td>
+                <td className="px-4 py-3">
+                  <InlineSelect
+                    value={b.branch_profile}
+                    onSave={async (v) => { await supabase.from("branches").update({ branch_profile: v as BranchProfile }).eq("id", b.id); qc.invalidateQueries(); }}
+                    options={[
+                      { value: "Retail", label: "Retail" },
+                      { value: "Delivery", label: "Delivery" },
+                      { value: "Mixed", label: "Mixed" },
+                      { value: "24-Hour", label: "24-Hour" },
+                    ]}
+                  />
+                </td>
                 <td className="px-4 py-3">
                   <ToggleActive table="branches" id={b.id} active={b.active} onDone={() => qc.invalidateQueries()} />
                 </td>
@@ -106,7 +156,13 @@ function BranchForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => 
       <h3 className="text-sm font-semibold">New branch</h3>
       <div className="grid gap-3 sm:grid-cols-2">
         <input placeholder="Branch name" value={name} onChange={(e) => setName(e.target.value)} className="h-9 rounded-md border border-input bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-ring" />
-        <input placeholder="Emirate" value={emirate} onChange={(e) => setEmirate(e.target.value)} className="h-9 rounded-md border border-input bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-ring" />
+        <select value={emirate} onChange={(e) => setEmirate(e.target.value)} className="h-9 rounded-md border border-input bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-ring">
+          <option value="">Select emirate</option>
+          <option value="Dubai">Dubai</option>
+          <option value="Abu Dhabi">Abu Dhabi</option>
+          <option value="Sharjah">Sharjah</option>
+          <option value="Ras Al Khaimah">Ras Al Khaimah</option>
+        </select>
         <select value={profile} onChange={(e) => setProfile(e.target.value as BranchProfile)} className="h-9 rounded-md border border-input bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-ring">
           <option value="Retail">Retail</option>
           <option value="Delivery">Delivery</option>
@@ -120,7 +176,7 @@ function BranchForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => 
       </div>
       {err ? <p className="text-xs text-destructive">{err}</p> : null}
       <div className="flex items-center gap-2">
-        <button onClick={() => mut.mutate()} disabled={mut.isPending || !name} className="h-9 rounded-md bg-primary px-4 text-xs font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50">
+        <button onClick={() => mut.mutate()} disabled={mut.isPending || !name || !emirate} className="h-9 rounded-md bg-primary px-4 text-xs font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50">
           {mut.isPending ? "Adding…" : "Add branch"}
         </button>
         <button onClick={onCancel} className="h-9 rounded-md border border-input bg-background px-4 text-xs font-medium hover:bg-muted">Cancel</button>
