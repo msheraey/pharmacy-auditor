@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { bandLabel } from "@/lib/scoring";
 import type { Branch, RevisitBand, Staff } from "@/lib/types";
 import { useState } from "react";
-import { AlertTriangle, ArrowLeft, CheckCircle2, Circle, ClipboardCheck, Download, Plus, ShieldAlert, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle2, Circle, ClipboardCheck, Download, FileText, Plus, ShieldAlert, X } from "lucide-react";
+import { exportPDF } from "@/lib/pdf-export";
 
 export const Route = createFileRoute("/_authenticated/visits/$visitId/report")({
   head: () => ({ meta: [{ title: "Visit report — Branch Auditor" }] }),
@@ -312,12 +313,23 @@ function ReportPage() {
         ) : null}
       </section>
 
-      <button
-        onClick={() => exportCSV(visit, sectionRows, evidence, points, sections, staffAgg, allStaff ?? [], actionItems ?? [])}
-        className="inline-flex h-9 items-center gap-1.5 rounded-md border border-input bg-background px-3 text-xs font-medium hover:bg-muted"
-      >
-        <Download className="h-3.5 w-3.5" /> Export CSV
-      </button>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => exportPDF({
+            visit, sectionRows, evidence, allPoints: points, allSections: sections,
+            staffAgg, allStaff: allStaff ?? [], actionItems: actionItems ?? [], branchResp: branchResp ?? [],
+          })}
+          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-input bg-background px-3 text-xs font-medium hover:bg-muted"
+        >
+          <FileText className="h-3.5 w-3.5" /> Export PDF
+        </button>
+        <button
+          onClick={() => exportCSV(visit, sectionRows, evidence, points, sections, staffAgg, allStaff ?? [], actionItems ?? [])}
+          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-input bg-background px-3 text-xs font-medium hover:bg-muted"
+        >
+          <Download className="h-3.5 w-3.5" /> Export CSV
+        </button>
+      </div>
     </div>
   );
 }
