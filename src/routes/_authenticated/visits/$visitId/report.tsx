@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { bandLabel } from "@/lib/scoring";
 import type { Branch, RevisitBand, Staff } from "@/lib/types";
-import { AlertTriangle, ArrowLeft, ClipboardCheck, ShieldAlert } from "lucide-react";
+import { useState } from "react";
+import { AlertTriangle, ArrowLeft, CheckCircle2, Circle, ClipboardCheck, Download, Plus, ShieldAlert, X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/visits/$visitId/report")({
   head: () => ({ meta: [{ title: "Visit report — Branch Auditor" }] }),
@@ -12,6 +13,9 @@ export const Route = createFileRoute("/_authenticated/visits/$visitId/report")({
 
 function ReportPage() {
   const { visitId } = Route.useParams();
+  const qc = useQueryClient();
+  const [newActionText, setNewActionText] = useState("");
+  const [newActionPointId, setNewActionPointId] = useState<string | null>(null);
 
   const { data: visit } = useQuery({
     queryKey: ["visit-report", visitId],
@@ -45,6 +49,37 @@ function ReportPage() {
   const { data: allStaff } = useQuery({
     queryKey: ["all-staff"],
     queryFn: async () => (await supabase.from("staff").select("*")).data ?? [] as Staff[],
+  });
+
+  const { data: actionItems } = useQuery({
+    queryKey: ["action-items", visitId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("action_items")
+        .select("*, checklist_points(point_text)")
+        .eq("visit_id", visitId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as unknown as (typeof data) & { checklist_points: { point_text: string } | null }[];
+    },
+  });
+
+  const createAction = useMutation({
+    mutationFn: async ({ pointId, description }: { pointId: string; description: string }) => {
+      const { error } = await supabase.from("action_items").insert({
+        visit_id: visitId, checklist_point_id: pointId, description, status: "open",
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["action-items", visitId] }); setNewActionText(""); setNewActionPointId(null); },
+  });
+
+  const toggleAction = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const { error } = await supabase.from("action_items").update({ status }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["action-items", visitId] }),
   });
 
   if (!visit || !sections || !points) {
@@ -197,11 +232,129 @@ function ReportPage() {
         )}
       </section>
 
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <ClipboardCheck className="h-4 w-4" /> PDF export and shareable link coming in the next phase.
-      </div>
+      <section className="rounded-xl border bg-card p-4">
+        <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
+          <CheckCircle2 className="h-4 w-4 text-success" /> Action items
+        </h2>
+
+        <div className="mb-3 space-y-2">
+          {(actionItems ?? []).length === 0 ? (
+            <p className="text-xs text-muted-foreground">No action items yet.</p>
+          ) : (
+            <ul className="space-y-1">
+              {actionItems?.map((a) => (
+                <li key={a.id} className="flex items-start gap-2 rounded-md bg-muted/40 p-2 text-xs">
+                  <button onClick={() => toggleAction.mutate({ id: a.id, status: a.status === "done" ? "open" : "done" })} className="mt-0.5">
+                    {a.status === "done" ? <CheckCircle2 className="h-4 w-4 text-success" /> : <Circle className="h-4 w-4 text-muted-foreground" />}
+                  </button>
+                  <div className="min-w-0 flex-1">
+                    <div className={a.status === "done" ? "line-through text-muted-foreground" : ""}>{a.description}</div>
+                    <div className="text-[10px] text-muted-foreground">{a.checklist_points?.point_text}</div>
+                  </div>
+                  <span className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-medium ${
+                    a.status === "overdue" ? "bg-destructive/10 text-destructive" : a.status === "done" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
+                  }`}>{a.status}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          {newActionPointId ? (
+            <div className="rounded-md border bg-background p-3 text-xs space-y-2">
+              <p className="text-muted-foreground">
+                Point: {pointMap.get(newActionPointId)?.point_text}
+              </p>
+              <textarea
+                placeholder="Describe the corrective action needed…"
+                value={newActionText}
+                onChange={(e) => setNewActionText(e.target.value)}
+                rows={2}
+                className="w-full rounded border border-input bg-background px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-ring"
+              />
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => createAction.mutate({ pointId: newActionPointId, description: newActionText })}
+                  disabled={!newActionText.trim() || createAction.isPending}
+                  className="inline-flex h-7 items-center gap-1 rounded bg-primary px-2 text-[10px] font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                >
+                  <Plus className="h-3 w-3" /> Create
+                </button>
+                <button onClick={() => { setNewActionPointId(null); setNewActionText(""); }} className="text-muted-foreground hover:text-foreground"><X className="h-3.5 w-3.5" /></button>
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        {evidence.length > 0 ? (
+          <details className="mt-2">
+            <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
+              Create action from low-scoring point…
+            </summary>
+            <ul className="mt-2 space-y-1">
+              {evidence.filter((r) => r.score !== null && r.score <= 2).map((r) => {
+                const p = pointMap.get(r.checklist_point_id);
+                return (
+                  <li key={r.id}>
+                    <button
+                      onClick={() => setNewActionPointId(r.checklist_point_id)}
+                      className="w-full rounded-md bg-muted/30 p-2 text-left text-xs hover:bg-muted"
+                    >
+                      <span className="text-muted-foreground">Score {r.score} · </span>
+                      {p?.point_text}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </details>
+        ) : null}
+      </section>
+
+      <button
+        onClick={() => exportCSV(visit, sectionRows, evidence, points, sections, staffAgg, allStaff ?? [], actionItems ?? [])}
+        className="inline-flex h-9 items-center gap-1.5 rounded-md border border-input bg-background px-3 text-xs font-medium hover:bg-muted"
+      >
+        <Download className="h-3.5 w-3.5" /> Export CSV
+      </button>
     </div>
   );
+}
+
+function exportCSV(
+  visit: any, sectionRows: { code: string; name: string; pct: number; weight: number }[],
+  evidence: any[], points: any[], sections: any[],
+  staffAgg: Map<string, { pts: number; max: number }>, allStaff: Staff[],
+  actionItems: any[],
+) {
+  const rows: string[] = ["section,point,score,comment,suggested_action"];
+  const pm = new Map(points.map((p: any) => [p.id, p]));
+  const sm = new Map(sections.map((s: any) => [s.id, s]));
+  for (const r of evidence) {
+    const p = pm.get(r.checklist_point_id);
+    const sec = p ? sm.get(p.section_id) : null;
+    const action = actionItems.find((a: any) => a.checklist_point_id === r.checklist_point_id);
+    rows.push([
+      sec?.code ?? "", p?.point_text ?? "", r.score ?? "",
+      (r.comment ?? "").replace(/"/g, '""'),
+      action ? `"${action.description.replace(/"/g, '""')}"` : "",
+    ].join(","));
+  }
+  rows.push(""); rows.push("section_score,score_pct,weight");
+  for (const s of sectionRows) rows.push(`${s.code},${s.pct.toFixed(1)}%,${s.weight}`);
+  rows.push(""); rows.push("staff_member,staff_code,pct");
+  for (const [sid, agg] of staffAgg) {
+    const s = allStaff.find((x) => x.id === sid);
+    const pct = agg.max ? (agg.pts / agg.max) * 100 : 0;
+    rows.push(`${s?.full_name ?? "Unknown"},${s?.staff_code ?? ""},${pct.toFixed(1)}%`);
+  }
+  const blob = new Blob([rows.join("\n")], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const branchName = (visit.branches as any)?.name ?? "branch";
+  a.href = url; a.download = `${branchName}_${visit.visit_date}_audit.csv`; a.click();
+  URL.revokeObjectURL(url);
 }
 
 function PhotoThumb({ path }: { path: string }) {

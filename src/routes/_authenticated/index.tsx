@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession, useUserRoles, hasRole } from "@/lib/auth";
-import { AlertTriangle, CalendarClock, ClipboardCheck, MapPin, TrendingUp } from "lucide-react";
+import { AlertTriangle, CalendarClock, ClipboardCheck, Download, MapPin, TrendingUp } from "lucide-react";
 import { bandLabel } from "@/lib/scoring";
 import type { RevisitBand } from "@/lib/types";
 
@@ -65,6 +66,25 @@ function Dashboard() {
     const key = (v as unknown as { branches: { name: string } | null }).branches?.name ?? "";
     if (!lastVisitByBranch.has(key)) lastVisitByBranch.set(key, v.visit_date);
   }
+  const visitData = useMemo(() => recentVisits ?? [], [recentVisits]);
+
+  const exportDashboardCSV = () => {
+    const rows = ["date,branch,emirate,status,score%25,weighted%25,red_flagged,band"];
+    for (const v of visitData) {
+      const b = (v as unknown as { branches: { name: string; emirate: string } | null }).branches;
+      rows.push([
+        v.visit_date, b?.name ?? "", b?.emirate ?? "", v.status,
+        v.branch_score_pct?.toFixed(1) ?? "", v.weighted_score_pct?.toFixed(1) ?? "",
+        v.red_flagged ? "yes" : "no", v.revisit_band ?? "",
+      ].join(","));
+    }
+    const blob = new Blob([rows.join("\n")], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `visits_export_${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const staleBranches = (branches ?? []).filter((b) => {
     const last = lastVisitByBranch.get(b.name);
     if (!last) return true;
@@ -97,6 +117,13 @@ function Dashboard() {
         <Stat icon={<CalendarClock className="h-4 w-4" />} label="Revisits due" value={revisitDue.length} tone="warning" />
         <Stat icon={<TrendingUp className="h-4 w-4" />} label="Open actions" value={openActions ?? 0} />
       </div>
+
+      <button
+        onClick={exportDashboardCSV}
+        className="inline-flex h-9 items-center gap-1.5 rounded-md border border-input bg-background px-3 text-xs font-medium hover:bg-muted"
+      >
+        <Download className="h-3.5 w-3.5" /> Export CSV
+      </button>
 
       {redFlagged.length ? (
         <Panel title="Red-flagged branches" tone="destructive">

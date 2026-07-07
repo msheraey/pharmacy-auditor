@@ -12,9 +12,16 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedVisitsNewRouteImport } from './routes/_authenticated/visits/new'
+import { Route as AuthenticatedBranchesBranchIdRouteImport } from './routes/_authenticated/branches/$branchId'
+import { Route as AuthenticatedStaffStaffIdRouteImport } from './routes/_authenticated/staff/$staffId'
 import { Route as AuthenticatedVisitsVisitIdIndexRouteImport } from './routes/_authenticated/visits/$visitId/index'
 import { Route as AuthenticatedVisitsVisitIdReportRouteImport } from './routes/_authenticated/visits/$visitId/report'
+import { Route as AuthenticatedAdminChecklistRouteImport } from './routes/_authenticated/admin/checklist'
+import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
+import { Route as AuthenticatedAdminBranchesRouteImport } from './routes/_authenticated/admin/branches'
+import { Route as AuthenticatedAdminStaffRouteImport } from './routes/_authenticated/admin/staff'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -35,9 +42,24 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedVisitsNewRoute = AuthenticatedVisitsNewRouteImport.update({
   id: '/visits/new',
   path: '/visits/new',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedBranchesBranchIdRoute = AuthenticatedBranchesBranchIdRouteImport.update({
+  id: '/branches/$branchId',
+  path: '/branches/$branchId',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedStaffStaffIdRoute = AuthenticatedStaffStaffIdRouteImport.update({
+  id: '/staff/$staffId',
+  path: '/staff/$staffId',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedVisitsVisitIdIndexRoute = AuthenticatedVisitsVisitIdIndexRouteImport.update({
@@ -50,18 +72,52 @@ const AuthenticatedVisitsVisitIdReportRoute = AuthenticatedVisitsVisitIdReportRo
   path: '/visits/$visitId/report',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminChecklistRoute = AuthenticatedAdminChecklistRouteImport.update({
+  id: '/admin/checklist',
+  path: '/checklist',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
+  id: '/admin/users',
+  path: '/users',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminBranchesRoute = AuthenticatedAdminBranchesRouteImport.update({
+  id: '/admin/branches',
+  path: '/branches',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminStaffRoute = AuthenticatedAdminStaffRouteImport.update({
+  id: '/admin/staff',
+  path: '/staff',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/admin/checklist': typeof AuthenticatedAdminChecklistRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/admin/branches': typeof AuthenticatedAdminBranchesRoute
+  '/admin/staff': typeof AuthenticatedAdminStaffRoute
   '/visits/new': typeof AuthenticatedVisitsNewRoute
+  '/branches/$branchId': typeof AuthenticatedBranchesBranchIdRoute
+  '/staff/$staffId': typeof AuthenticatedStaffStaffIdRoute
   '/visits/$visitId': typeof AuthenticatedVisitsVisitIdIndexRoute
   '/visits/$visitId/report': typeof AuthenticatedVisitsVisitIdReportRoute
 }
 export interface FileRoutesByTo {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/admin/checklist': typeof AuthenticatedAdminChecklistRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/admin/branches': typeof AuthenticatedAdminBranchesRoute
+  '/admin/staff': typeof AuthenticatedAdminStaffRoute
   '/visits/new': typeof AuthenticatedVisitsNewRoute
+  '/branches/$branchId': typeof AuthenticatedBranchesBranchIdRoute
+  '/staff/$staffId': typeof AuthenticatedStaffStaffIdRoute
   '/visits/$visitId': typeof AuthenticatedVisitsVisitIdIndexRoute
   '/visits/$visitId/report': typeof AuthenticatedVisitsVisitIdReportRoute
 }
@@ -71,48 +127,51 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/admin/checklist': typeof AuthenticatedAdminChecklistRoute
+  '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/_authenticated/admin/branches': typeof AuthenticatedAdminBranchesRoute
+  '/_authenticated/admin/staff': typeof AuthenticatedAdminStaffRoute
   '/_authenticated/visits/new': typeof AuthenticatedVisitsNewRoute
+  '/_authenticated/branches/$branchId': typeof AuthenticatedBranchesBranchIdRoute
+  '/_authenticated/staff/$staffId': typeof AuthenticatedStaffStaffIdRoute
   '/_authenticated/visits/$visitId/': typeof AuthenticatedVisitsVisitIdIndexRoute
   '/_authenticated/visits/$visitId/report': typeof AuthenticatedVisitsVisitIdReportRoute
 }
-export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/auth'
-    | '/visits/new'
-    | '/visits/$visitId'
-    | '/visits/$visitId/report'
-  fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/auth'
-    | '/visits/new'
-    | '/visits/$visitId'
-    | '/visits/$visitId/report'
-  id:
-    | '__root__'
-    | '/'
-    | '/_authenticated'
-    | '/auth'
-    | '/_authenticated/'
-    | '/_authenticated/visits/new'
-    | '/_authenticated/visits/$visitId/'
-    | '/_authenticated/visits/$visitId/report'
-  fileRoutesById: FileRoutesById
+
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminChecklistRoute: typeof AuthenticatedAdminChecklistRoute
+  AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
+  AuthenticatedAdminBranchesRoute: typeof AuthenticatedAdminBranchesRoute
+  AuthenticatedAdminStaffRoute: typeof AuthenticatedAdminStaffRoute
 }
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminChecklistRoute,
+  AuthenticatedAdminUsersRoute,
+  AuthenticatedAdminBranchesRoute,
+  AuthenticatedAdminStaffRoute,
+}
+const AuthenticatedAdminRouteWithChildren = AuthenticatedAdminRoute._addFileChildren(
+  AuthenticatedAdminRouteChildren,
+)
 
 interface AuthenticatedRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedVisitsNewRoute: typeof AuthenticatedVisitsNewRoute
+  AuthenticatedBranchesBranchIdRoute: typeof AuthenticatedBranchesBranchIdRoute
+  AuthenticatedStaffStaffIdRoute: typeof AuthenticatedStaffStaffIdRoute
   AuthenticatedVisitsVisitIdIndexRoute: typeof AuthenticatedVisitsVisitIdIndexRoute
   AuthenticatedVisitsVisitIdReportRoute: typeof AuthenticatedVisitsVisitIdReportRoute
 }
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
-  AuthenticatedVisitsNewRoute: AuthenticatedVisitsNewRoute,
-  AuthenticatedVisitsVisitIdIndexRoute: AuthenticatedVisitsVisitIdIndexRoute,
-  AuthenticatedVisitsVisitIdReportRoute: AuthenticatedVisitsVisitIdReportRoute,
+  AuthenticatedIndexRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedVisitsNewRoute,
+  AuthenticatedBranchesBranchIdRoute,
+  AuthenticatedStaffStaffIdRoute,
+  AuthenticatedVisitsVisitIdIndexRoute,
+  AuthenticatedVisitsVisitIdReportRoute,
 }
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
@@ -154,11 +213,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/checklist': {
+      id: '/_authenticated/admin/checklist'
+      path: '/admin/checklist'
+      fullPath: '/admin/checklist'
+      preLoaderRoute: typeof AuthenticatedAdminChecklistRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/users': {
+      id: '/_authenticated/admin/users'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/branches': {
+      id: '/_authenticated/admin/branches'
+      path: '/admin/branches'
+      fullPath: '/admin/branches'
+      preLoaderRoute: typeof AuthenticatedAdminBranchesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/staff': {
+      id: '/_authenticated/admin/staff'
+      path: '/admin/staff'
+      fullPath: '/admin/staff'
+      preLoaderRoute: typeof AuthenticatedAdminStaffRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/visits/new': {
       id: '/_authenticated/visits/new'
       path: '/visits/new'
       fullPath: '/visits/new'
       preLoaderRoute: typeof AuthenticatedVisitsNewRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/branches/$branchId': {
+      id: '/_authenticated/branches/$branchId'
+      path: '/branches/$branchId'
+      fullPath: '/branches/$branchId'
+      preLoaderRoute: typeof AuthenticatedBranchesBranchIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/staff/$staffId': {
+      id: '/_authenticated/staff/$staffId'
+      path: '/staff/$staffId'
+      fullPath: '/staff/$staffId'
+      preLoaderRoute: typeof AuthenticatedStaffStaffIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/visits/$visitId/': {
@@ -179,9 +287,9 @@ declare module '@tanstack/react-router' {
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
-  AuthRoute: AuthRoute,
+  AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

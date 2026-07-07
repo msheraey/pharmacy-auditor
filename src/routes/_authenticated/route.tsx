@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect, Link, useRouter } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { useSession, useUserRoles } from "@/lib/auth";
-import { ClipboardCheck, LayoutDashboard, LogOut, Plus } from "lucide-react";
+import { useSession, useUserRoles, hasRole } from "@/lib/auth";
+import { ClipboardCheck, LayoutDashboard, LogOut, Plus, Settings } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -79,6 +79,14 @@ function AuthenticatedLayout() {
             >
               <Plus className="h-4 w-4" /> <span className="hidden sm:inline">New visit</span>
             </Link>
+            {hasRole(roles, "super_admin") ? (
+              <Link
+                to="/admin/checklist"
+                className="inline-flex h-10 items-center gap-1.5 rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground [&.active]:bg-secondary [&.active]:text-secondary-foreground"
+              >
+                <Settings className="h-4 w-4" /> <span className="hidden sm:inline">Admin</span>
+              </Link>
+            ) : null}
             <button
               onClick={handleSignOut}
               title="Sign out"

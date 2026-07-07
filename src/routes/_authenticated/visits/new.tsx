@@ -4,7 +4,7 @@ import { z } from "zod";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession, useUserRoles, hasRole } from "@/lib/auth";
-import { MapPin, Play } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Circle, MapPin, Play } from "lucide-react";
 
 const searchSchema = z.object({ branch: z.string().optional() });
 
@@ -39,6 +39,26 @@ function NewVisit() {
   const filtered = (branches ?? []).filter((b) =>
     q ? (b.name + " " + b.emirate).toLowerCase().includes(q.toLowerCase()) : true,
   );
+
+    const { data: previousActions } = useQuery({
+    queryKey: ["previous-actions", branchId],
+    queryFn: async () => {
+      if (!branchId) return [];
+      const { data: branchVisits } = await supabase
+        .from("visits").select("id").eq("branch_id", branchId).order("created_at", { ascending: false }).limit(5);
+      if (!branchVisits?.length) return [];
+      const ids = branchVisits.map((v) => v.id);
+      const { data, error } = await supabase
+        .from("action_items")
+        .select("*, visits!inner(visit_date), checklist_points(point_text)")
+        .in("visit_id", ids)
+        .in("status", ["open", "overdue"])
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as unknown as (typeof data) & { visits: { visit_date: string }; checklist_points: { point_text: string } | null }[];
+    },
+    enabled: !!branchId,
+  });
 
   const startMut = useMutation({
     mutationFn: async () => {
@@ -117,6 +137,35 @@ function NewVisit() {
           ))}
         </ul>
       )}
+
+      {previousActions && previousActions.length > 0 ? (
+        <div className="rounded-xl border border-warning bg-card p-4">
+          <div className="flex items-center gap-2 text-sm font-semibold">
+            <AlertTriangle className="h-4 w-4 text-warning-foreground" />
+            Open actions from previous visits ({previousActions.length})
+          </div>
+          <ul className="mt-2 space-y-1">
+            {previousActions.map((a) => (
+              <li key={a.id} className="flex items-start gap-2 rounded-md bg-muted/40 p-2 text-xs">
+                {a.status === "done" ? <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 text-success" /> : <Circle className="mt-0.5 h-3.5 w-3.5 text-warning-foreground" />}
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium">{a.description}</div>
+                  <div className="text-[10px] text-muted-foreground">
+                    {a.checklist_points?.point_text} · from {a.visits?.visit_date}
+                  </div>
+                </div>
+                <span className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-medium ${
+                  a.status === "overdue" ? "bg-destructive/10 text-destructive" : "bg-warning/10 text-warning-foreground"
+                }`}>{a.status}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : branchId ? (
+        <div className="rounded-xl border bg-card p-4 text-xs text-muted-foreground">
+          No open action items from previous visits.
+        </div>
+      ) : null}
 
       <div className="sticky bottom-4 flex justify-end">
         <button
