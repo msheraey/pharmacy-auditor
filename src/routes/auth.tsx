@@ -38,7 +38,7 @@ function AuthPage() {
         });
         if (error) throw error;
       }
-      navigate({ to: "/" });
+      navigate({ to: "/dashboard" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {

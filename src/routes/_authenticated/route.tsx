@@ -59,7 +59,7 @@ function AuthenticatedLayout() {
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-30 border-b bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
-          <Link to="/" className="flex items-center gap-2 font-semibold">
+          <Link to="/dashboard" className="flex items-center gap-2 font-semibold">
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <ClipboardCheck className="h-4 w-4" />
             </span>
@@ -67,7 +67,7 @@ function AuthenticatedLayout() {
           </Link>
           <nav className="flex items-center gap-1">
             <Link
-              to="/"
+              to="/dashboard"
               className="inline-flex h-10 items-center gap-1.5 rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground [&.active]:bg-secondary [&.active]:text-secondary-foreground"
               activeOptions={{ exact: true }}
             >

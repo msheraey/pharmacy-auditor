@@ -7,7 +7,7 @@ import { AlertTriangle, CalendarClock, ClipboardCheck, Download, MapPin, Trendin
 import { bandLabel } from "@/lib/scoring";
 import type { RevisitBand } from "@/lib/types";
 
-export const Route = createFileRoute("/_authenticated/")({
+export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Branch Auditor" }] }),
   component: Dashboard,
 });
