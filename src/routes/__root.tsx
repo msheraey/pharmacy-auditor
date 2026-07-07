@@ -77,12 +77,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "Branch & Staff Auditor" },
-      { name: "description", content: "Mobile-first live branch and staff audits for multi-branch pharmacy operations." },
-      { property: "og:title", content: "Branch & Staff Auditor" },
-      { property: "og:description", content: "Mobile-first live branch and staff audits for multi-branch pharmacy operations." },
+      { title: "Branch & Staff Auditor — Live pharmacy branch audits" },
+      { name: "description", content: "Mobile-first branch and staff auditing for multi-branch pharmacy operations: scoring, evidence, knockouts, and revisit tracking." },
+      { property: "og:title", content: "Branch & Staff Auditor — Live pharmacy branch audits" },
+      { property: "og:description", content: "Mobile-first branch and staff auditing for multi-branch pharmacy operations: scoring, evidence, knockouts, and revisit tracking." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Branch & Staff Auditor — Live pharmacy branch audits" },
+      { name: "twitter:description", content: "Mobile-first branch and staff auditing for multi-branch pharmacy operations: scoring, evidence, knockouts, and revisit tracking." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c768ab69-cb30-4013-926c-6a53599384fa/id-preview-6776369b--5d0e38b9-f7b0-4e62-af24-2a5b75d3feab.lovable.app-1783408198615.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c768ab69-cb30-4013-926c-6a53599384fa/id-preview-6776369b--5d0e38b9-f7b0-4e62-af24-2a5b75d3feab.lovable.app-1783408198615.png" },
     ],
     links: [
       {
