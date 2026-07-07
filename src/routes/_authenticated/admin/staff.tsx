@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Plus, Trash2, Search, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import type { StaffRole } from "@/lib/types";
 import { InlineInput, InlineSelect } from "@/components/inline-edit";
 
@@ -11,9 +11,15 @@ export const Route = createFileRoute("/_authenticated/admin/staff")({
   component: StaffAdmin,
 });
 
+type SortCol = "code" | "name" | "role" | "branch" | "active";
+type SortDir = "asc" | "desc";
+
 function StaffAdmin() {
   const qc = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
+  const [search, setSearch] = useState("");
+  const [sortCol, setSortCol] = useState<SortCol>("name");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
 
   const { data: staff } = useQuery({
     queryKey: ["admin-staff"],
@@ -36,10 +42,46 @@ function StaffAdmin() {
     },
   });
 
+  const filtered = useMemo(() => {
+    if (!staff) return [];
+    const f = staff.filter((s) => {
+      if (!search) return true;
+      const q = search.toLowerCase();
+      return (
+        s.staff_code.toLowerCase().includes(q) ||
+        s.full_name.toLowerCase().includes(q) ||
+        s.role.toLowerCase().includes(q) ||
+        s.branches?.name?.toLowerCase().includes(q)
+      );
+    });
+    f.sort((a, b) => {
+      let cmp = 0;
+      switch (sortCol) {
+        case "code": cmp = a.staff_code.localeCompare(b.staff_code); break;
+        case "name": cmp = a.full_name.localeCompare(b.full_name); break;
+        case "role": cmp = a.role.localeCompare(b.role); break;
+        case "branch": cmp = (a.branches?.name ?? "").localeCompare(b.branches?.name ?? ""); break;
+        case "active": cmp = Number(a.active) - Number(b.active); break;
+      }
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+    return f;
+  }, [staff, search, sortCol, sortDir]);
+
+  function toggleSort(col: SortCol) {
+    if (sortCol === col) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortCol(col); setSortDir("asc"); }
+  }
+
+  function SortIcon({ col }: { col: SortCol }) {
+    if (sortCol !== col) return <ArrowUpDown className="h-3 w-3" />;
+    return sortDir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{staff?.length ?? 0} staff</p>
+        <p className="text-sm text-muted-foreground">{filtered.length} / {staff?.length ?? 0} staff</p>
         <button
           onClick={() => setShowAdd(true)}
           className="inline-flex h-9 items-center gap-1 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:opacity-90"
@@ -52,21 +94,50 @@ function StaffAdmin() {
         <StaffForm onDone={() => { setShowAdd(false); qc.invalidateQueries(); }} onCancel={() => setShowAdd(false)} />
       ) : null}
 
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          placeholder="Search staff…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="h-10 w-full rounded-lg border border-input bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+        />
+      </div>
+
       <div className="overflow-x-auto rounded-lg border">
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
-              <th className="px-4 py-3 text-left">Code</th>
-              <th className="px-4 py-3 text-left">Name</th>
-              <th className="px-4 py-3 text-left">Role</th>
-              <th className="px-4 py-3 text-left">Branch</th>
-              <th className="px-4 py-3 text-left">DHA</th>
-              <th className="px-4 py-3 text-left">Active</th>
+              <th className="px-4 py-3 text-left">
+                <button onClick={() => toggleSort("code")} className="inline-flex items-center gap-1 hover:text-foreground">
+                  Code <SortIcon col="code" />
+                </button>
+              </th>
+              <th className="px-4 py-3 text-left">
+                <button onClick={() => toggleSort("name")} className="inline-flex items-center gap-1 hover:text-foreground">
+                  Name <SortIcon col="name" />
+                </button>
+              </th>
+              <th className="px-4 py-3 text-left">
+                <button onClick={() => toggleSort("role")} className="inline-flex items-center gap-1 hover:text-foreground">
+                  Role <SortIcon col="role" />
+                </button>
+              </th>
+              <th className="px-4 py-3 text-left">
+                <button onClick={() => toggleSort("branch")} className="inline-flex items-center gap-1 hover:text-foreground">
+                  Branch <SortIcon col="branch" />
+                </button>
+              </th>
+              <th className="px-4 py-3 text-left">
+                <button onClick={() => toggleSort("active")} className="inline-flex items-center gap-1 hover:text-foreground">
+                  Active <SortIcon col="active" />
+                </button>
+              </th>
               <th className="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y">
-            {staff?.map((s) => (
+            {filtered.map((s) => (
               <tr key={s.id}>
                 <td className="px-4 py-3 text-xs text-muted-foreground">
                   <InlineInput
@@ -108,20 +179,6 @@ function StaffAdmin() {
                     ]}
                   />
                 </td>
-                <td className="px-4 py-3 text-xs">
-                  {s.dha_license_status ? (
-                    <InlineInput
-                      value={s.dha_license_status}
-                      onSave={async (v) => { await supabase.from("staff").update({ dha_license_status: v || null }).eq("id", s.id); qc.invalidateQueries(); }}
-                    />
-                  ) : (
-                    <InlineInput
-                      value=""
-                      placeholder="Add DHA"
-                      onSave={async (v) => { await supabase.from("staff").update({ dha_license_status: v || null }).eq("id", s.id); qc.invalidateQueries(); }}
-                    />
-                  )}
-                </td>
                 <td className="px-4 py-3">
                   <ToggleActive id={s.id} active={s.active} onDone={() => qc.invalidateQueries()} />
                 </td>
@@ -157,7 +214,6 @@ function StaffForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => v
   const [name, setName] = useState("");
   const [role, setRole] = useState<StaffRole>("Pharmacist");
   const [branchId, setBranchId] = useState("");
-  const [dha, setDha] = useState("");
   const [err, setErr] = useState("");
 
   const { data: branches } = useQuery({
@@ -173,7 +229,6 @@ function StaffForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => v
     mutationFn: async () => {
       const { error } = await supabase.from("staff").insert({
         staff_code: code, full_name: name, role, branch_id: branchId || null,
-        dha_license_status: dha || null,
       });
       if (error) throw error;
     },
@@ -197,7 +252,6 @@ function StaffForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => v
           <option value="">No branch</option>
           {(branches ?? []).map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
         </select>
-        <input placeholder="DHA license (optional)" value={dha} onChange={(e) => setDha(e.target.value)} className="h-9 rounded-md border border-input bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-ring" />
       </div>
       {err ? <p className="text-xs text-destructive">{err}</p> : null}
       <div className="flex items-center gap-2">
