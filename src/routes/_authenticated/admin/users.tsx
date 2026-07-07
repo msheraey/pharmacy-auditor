@@ -17,8 +17,8 @@ function UsersAdmin() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_roles")
-        .select("id, user_id, role, cluster_id, clusters(name), users:auth_user_id(email)")
-        .returns<(typeof data) & { clusters: { name: string } | null; users: { email: string } | null }[]>();
+        .select("id, user_id, role, cluster_id, clusters(name)")
+        .returns<{ id: string; user_id: string; role: string; cluster_id: string | null; clusters: { name: string } | null }[]>();
       if (error) throw error;
       return data ?? [];
     },
@@ -63,7 +63,7 @@ function UsersAdmin() {
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
-              <th className="px-4 py-3 text-left">Email</th>
+              <th className="px-4 py-3 text-left">User</th>
               <th className="px-4 py-3 text-left">Role</th>
               <th className="px-4 py-3 text-left">Cluster scope</th>
               <th className="px-4 py-3 text-right">Actions</th>
@@ -72,7 +72,7 @@ function UsersAdmin() {
           <tbody className="divide-y">
             {users?.map((u) => (
               <tr key={u.id}>
-                <td className="px-4 py-3 font-medium">{u.users?.email ?? u.user_id.slice(0, 8)}</td>
+                <td className="px-4 py-3 font-medium">{u.user_id.slice(0, 8)}</td>
                 <td className="px-4 py-3">
                   <span className="inline-flex items-center gap-1">
                     {roleIcon(u.role as AppRole)} {u.role.replace("_", " ")}
